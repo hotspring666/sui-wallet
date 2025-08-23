@@ -71,11 +71,7 @@ export const getWalletInfo = async (req: Request, res: Response) => {
       }
       if (hasKey(object.fields, "balance")) {
         tokens.push(object);
-      } else if (
-        hasKey(object.fields, "image_url") ||
-        hasKey(object.fields, "img_url") ||
-        hasKey(object.fields, "url")
-      ) {
+      } else {
         nfts.push(object);
       }
     }
@@ -91,7 +87,6 @@ export const getWalletInfo = async (req: Request, res: Response) => {
                 extracted.toString() != "0x2::sui::SUI"
               )
                 return null;
-              console.log(extracted);
               return extracted;
             }
             return null;
@@ -172,9 +167,16 @@ export const getWalletInfo = async (req: Request, res: Response) => {
     for (let nft of nfts) {
       if (!hasKey(nft, "type") || !hasKey(nft, "fields")) continue;
       nftData.push({
-        name: nft?.fields?.name?.toString() || "Unknow",
+        name:
+          nft?.fields?.name?.toString() ||
+          nft.type.split("::").pop() ||
+          "Unknown",
         coinType: nft.type,
-        icon: nft.fields.url?.toString(),
+        icon:
+          nft.fields.image_url?.toString() ||
+          (nft.fields.image?.toString() && `ipfs://${nft.fields.image}`) ||
+          nft.fields.img_url?.toString() ||
+          nft.fields.url?.toString(),
         oid: (nft.fields.id as any)?.id?.toString() || "",
       });
     }
