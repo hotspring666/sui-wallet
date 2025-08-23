@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
-import { MoveStruct, MoveValue, SuiClient, SuiParsedData, getFullnodeUrl } from "@mysten/sui.js/client";
+import axios from "axios";
+import {
+  MoveStruct,
+  MoveValue,
+  SuiClient,
+  SuiParsedData,
+  getFullnodeUrl,
+} from "@mysten/sui.js/client";
 import { blockCoins, blockObjects } from "../config/blocks";
 
 const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") });
@@ -8,13 +15,13 @@ function hasKey<T extends string>(
   fields: MoveStruct,
   key: T
 ): fields is Record<T, any> & Exclude<MoveStruct, MoveValue[]> {
-  return typeof fields === 'object' &&
+  return (
+    typeof fields === "object" &&
     fields !== null &&
     !Array.isArray(fields) &&
-    key in fields;
+    key in fields
+  );
 }
-
-
 
 export const getWalletInfo = async (req: Request, res: Response) => {
   const { address } = req.params;
@@ -25,16 +32,15 @@ export const getWalletInfo = async (req: Request, res: Response) => {
 
   try {
     // Get all coins first
-    let hasNextPage: boolean = true
-    let nextCursor: string | null | undefined = null
-    const objects: SuiParsedData[] = []
+    let hasNextPage: boolean = true;
+    let nextCursor: string | null | undefined = null;
+    const objects: SuiParsedData[] = [];
     while (hasNextPage) {
       const paginatedObjectsResponse = await suiClient.getOwnedObjects({
         owner: address,
         cursor: nextCursor,
-        options: { showContent: true }
+        options: { showContent: true },
       });
-
 
       hasNextPage = paginatedObjectsResponse.hasNextPage;
       nextCursor = paginatedObjectsResponse.nextCursor;
@@ -42,46 +48,62 @@ export const getWalletInfo = async (req: Request, res: Response) => {
       if (paginatedObjectsResponse.data) {
         const validContents = paginatedObjectsResponse.data
           .map((d) => d.data?.content)
-          .filter((content): content is SuiParsedData => content !== null && content !== undefined);
+          .filter(
+            (content): content is SuiParsedData =>
+              content !== null && content !== undefined
+          );
 
         objects.push(...validContents);
       }
     }
     let suiBalance = 0;
-    const tokens: MoveStruct[] = []
-    const nfts: MoveStruct[] = []
+    const tokens: MoveStruct[] = [];
+    const nfts: MoveStruct[] = [];
 
     for (let object of objects) {
-      if (object?.dataType == "package") continue
-      if (object?.dataType == "moveObject"
-        && (blockCoins.blocklist.includes(object?.type) || blockObjects.blocklist.includes(object.type))) {
-        continue
+      if (object?.dataType == "package") continue;
+      if (
+        object?.dataType == "moveObject" &&
+        (blockCoins.blocklist.includes(object?.type) ||
+          blockObjects.blocklist.includes(object.type))
+      ) {
+        continue;
       }
       if (hasKey(object.fields, "balance")) {
-        tokens.push(object)
-      } else if (hasKey(object.fields, "image_url") || hasKey(object.fields, "img_url") || hasKey(object.fields, "url")) {
-        nfts.push(object)
+        tokens.push(object);
+      } else if (
+        hasKey(object.fields, "image_url") ||
+        hasKey(object.fields, "img_url") ||
+        hasKey(object.fields, "url")
+      ) {
+        nfts.push(object);
       }
-
     }
-    const uniqueCoinTypes = [...new Set(tokens?.map((token) => {
-      if (hasKey(token, "type")) {
-        const extracted = token.type?.match(/<(.+?)>/)?.[1] || "";
-        if (
-          ((extracted as string).includes("::sui::SUI")||(extracted as string).includes("::asui::ASUI"))
-          && extracted.toString() != "0x2::sui::SUI") return null
-        console.log(extracted)
-        return extracted;
-      }
-      return null;
-    }).filter(Boolean))];
-
-
+    const uniqueCoinTypes = [
+      ...new Set(
+        tokens
+          ?.map((token) => {
+            if (hasKey(token, "type")) {
+              const extracted = token.type?.match(/<(.+?)>/)?.[1] || "";
+              if (
+                ((extracted as string).includes("::sui::SUI") ||
+                  (extracted as string).includes("::asui::ASUI")) &&
+                extracted.toString() != "0x2::sui::SUI"
+              )
+                return null;
+              console.log(extracted);
+              return extracted;
+            }
+            return null;
+          })
+          .filter(Boolean)
+      ),
+    ];
 
     const metaDataMap = new Map();
     for (const coinType of uniqueCoinTypes) {
       try {
-        if (!coinType) continue
+        if (!coinType) continue;
         const metadata = await suiClient.getCoinMetadata({ coinType });
         // const metadata = [{
         //   decimals: 9,
@@ -103,13 +125,23 @@ export const getWalletInfo = async (req: Request, res: Response) => {
 
     // // Process coins to get a summary
     const tokenData: {
-      [key: string]: { amount: number; symbol: string; coinType: string, name: string, icon: string };
+      [key: string]: {
+        amount: number;
+        symbol: string;
+        coinType: string;
+        name: string;
+        icon: string;
+      };
     } = {};
 
     for (const token of tokens) {
-    
-      if (!hasKey(token, "type") || !hasKey(token, "fields") || !hasKey(token.fields, "balance")) continue
-      const coinType = token.type?.match(/<(.+?)>/)?.[1] || ""
+      if (
+        !hasKey(token, "type") ||
+        !hasKey(token, "fields") ||
+        !hasKey(token.fields, "balance")
+      )
+        continue;
+      const coinType = token.type?.match(/<(.+?)>/)?.[1] || "";
       if (!metaDataMap.has(coinType)) continue;
       const decimals = metaDataMap.get(coinType)?.decimals ?? 9;
       const amount = Number(token.fields.balance || 0) / Math.pow(10, decimals);
@@ -126,26 +158,31 @@ export const getWalletInfo = async (req: Request, res: Response) => {
             symbol: metaDataMap.get(coinType)?.symbol,
             name: metaDataMap.get(coinType)?.name,
             coinType: coinType,
-            icon: metaDataMap.get(coinType)?.iconUrl
+            icon: metaDataMap.get(coinType)?.iconUrl,
           };
         }
       }
     }
-    const nftData: { name: string, coinType: string, icon?: string, oid: string }[] = [];
+    const nftData: {
+      name: string;
+      coinType: string;
+      icon?: string;
+      oid: string;
+    }[] = [];
     for (let nft of nfts) {
       if (!hasKey(nft, "type") || !hasKey(nft, "fields")) continue;
       nftData.push({
         name: nft?.fields?.name?.toString() || "Unknow",
-        coinType: nft.type, icon: nft.fields.url?.toString(),
-        oid: (nft.fields.id as any)?.id?.toString() || ""
-      })
-
+        coinType: nft.type,
+        icon: nft.fields.url?.toString(),
+        oid: (nft.fields.id as any)?.id?.toString() || "",
+      });
     }
 
     res.json({
       suiBalance,
       tokens: Object.values(tokenData),
-      nfts: nftData
+      nfts: nftData,
     });
   } catch (error) {
     console.error("Error fetching wallet info:", error);
@@ -153,5 +190,32 @@ export const getWalletInfo = async (req: Request, res: Response) => {
   }
 };
 
-export const getObjectInfo = async (req: Request, res: Response) => {
-}
+export const getTestnetObject = async (req: Request, res: Response) => {
+  const objectId =
+    "0xeeb34a78eaf4ae873c679db294296778676de4a335f222856716d1ad6ed54e45";
+  try {
+    const objectData = await testSuiClient.getObject({
+      id: objectId,
+      options: { showContent: true },
+    });
+
+    if (objectData.data?.content?.dataType !== "moveObject") {
+      return res
+        .status(404)
+        .json({ error: "Object not found or not a move object" });
+    }
+
+    const fields = objectData.data.content.fields as any;
+
+    const responseData = {
+      admin: fields.admin,
+      id: fields.id.id,
+      balance: fields.balance,
+    };
+
+    res.json(responseData);
+  } catch (error) {
+    console.error("Error fetching testnet object:", error);
+    res.status(500).json({ error: "Failed to fetch testnet object" });
+  }
+};
