@@ -1,4 +1,4 @@
-import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
+import { ConnectButton, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { Card, CardContent, Typography, Box, CircularProgress } from '@mui/material';
 import { useEffect, useState } from 'react';
 
@@ -28,13 +28,14 @@ function WalletCard() {
   }, [account, suiClient]);
 
   return (
-    <Card sx={{ minWidth: 275, mt: 3, width: '100%' }}>
+    <Card sx={{ minWidth: 275, mt: 3, width: '100%', textAlign: "center" }}>
       <CardContent>
         <Typography sx={{ mb: 1.5 }} color="text.secondary">
           Wallet Information
         </Typography>
+        <ConnectButton />
         {account ? (
-          <Box>
+          <Box mt={"10px"}>
             <Typography variant="body2" sx={{ mb: 1 }}>
               <strong>Address:</strong> {account.address}
             </Typography>
@@ -44,7 +45,7 @@ function WalletCard() {
             </Typography>
           </Box>
         ) : (
-          <Typography variant="body2">
+          <Typography variant="body2" mt={"10px"}>
             Please connect your wallet to view information.
           </Typography>
         )}

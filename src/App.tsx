@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   SuiClientProvider,
   WalletProvider,
-  ConnectButton,
 } from "@mysten/dapp-kit";
 import { getFullnodeUrl } from "@mysten/sui.js/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -18,7 +17,6 @@ const networks = {
 };
 
 function App() {
-  console.log("GGG");
   const [activeNetwork, setActiveNetwork] = useState(
     "mainnet" as keyof typeof networks
   );
@@ -42,9 +40,9 @@ function App() {
               }}
             >
               <Typography variant="h4" component="h1" gutterBottom>
-                Sui Wallet Connector
+                Sui Wallet
               </Typography>
-              <ConnectButton />
+
               <WalletCard />
               <AddressExplorer />
             </Box>
