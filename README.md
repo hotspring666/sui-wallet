@@ -1,69 +1,54 @@
-# React + TypeScript + Vite
+# Sui Wallet Web Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a web application for interacting with the Sui blockchain. It provides functionalities such as viewing wallet balances, exploring addresses, and sending transactions on the Testnet.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Connect to various Sui wallets.
+- View SUI and other token balances for any address.
+- View NFTs for any address.
+- Switch between Mainnet and Testnet.
+- Send SUI tokens on the Testnet.
+- Request SUI from the Testnet faucet.
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend**: React, TypeScript, Vite, Material-UI (MUI), Sui DApp Kit
+- **Backend**: Node.js, Express, TypeScript, Sui.js SDK
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Prerequisites
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [npm](https://www.npmjs.com/)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Installation
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1.  Clone the repository:
+    ```sh
+    git clone <repository-url>
+    ```
+2.  Navigate to the project directory:
+    ```sh
+    cd sui-wallet
+    ```
+3.  Install all dependencies for both the frontend and backend:
+    ```sh
+    npm install
+    ```
+
+### Running the Application
+
+This project is configured to run both the frontend and backend servers concurrently with a single command.
+
+1.  Start the development servers:
+    ```sh
+    npm run dev
+    ```
+2.  This command will:
+    - Start the frontend Vite server on `http://localhost:5173`.
+    - Start the backend Node.js server on `http://localhost:3001`.
+3.  Open your browser and navigate to `http://localhost:5173` to use the application.
