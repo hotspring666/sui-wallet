@@ -50,5 +50,5 @@ This project is configured to run both the frontend and backend servers concurre
     ```
 2.  This command will:
     - Start the frontend Vite server on `http://localhost:5173`.
-    - Start the backend Node.js server on `http://localhost:3001`.
+    - Start the backend Node.js server on `http://localhost:21667`.
 3.  Open your browser and navigate to `http://localhost:5173` to use the application.
